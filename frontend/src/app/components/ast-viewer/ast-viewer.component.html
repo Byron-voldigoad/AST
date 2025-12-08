@@ -1,0 +1,9 @@
+<div class="ast-viewer">
+    <div class="header">AST Visualization</div>
+    <div class="content">
+        <app-ast-node *ngIf="ast" [node]="ast"></app-ast-node>
+        <div *ngIf="!ast" class="placeholder">
+            Aucun AST disponible. Lancez l'analyse.
+        </div>
+    </div>
+</div>

@@ -1,0 +1,27 @@
+.ast-viewer {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    border-left: 1px solid #333;
+}
+
+.header {
+    padding: 10px;
+    background-color: #252526;
+    font-weight: bold;
+    border-bottom: 1px solid #333;
+}
+
+.content {
+    flex: 1;
+    overflow: auto;
+    padding: 10px;
+}
+
+.placeholder {
+    color: #888;
+    text-align: center;
+    margin-top: 20px;
+}

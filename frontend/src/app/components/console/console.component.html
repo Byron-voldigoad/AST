@@ -1,0 +1,16 @@
+<div class="h-full flex flex-col bg-vscode-base text-vscode-text font-mono text-[13px] border-t border-vscode-border">
+    <div class="flex-1 overflow-y-auto p-3" #scrollContainer>
+        <div *ngFor="let log of logs" class="border-b border-gray-800 py-0.5 leading-snug flex hover:bg-gray-800/30"
+            [ngClass]="{
+                'text-red-300': log.type === 'error',
+                'text-green-300': log.type === 'success',
+                'text-gray-300': log.type === 'info'
+             }">
+            <span class="text-blue-500 font-bold mr-2 select-none">></span>
+            <span class="whitespace-pre-wrap">{{ log.message }}</span>
+        </div>
+        <div *ngIf="logs.length === 0" class="text-gray-500 italic mt-2 opacity-60">
+            Sortie de la console...
+        </div>
+    </div>
+</div>

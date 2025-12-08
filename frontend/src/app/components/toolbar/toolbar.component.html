@@ -1,0 +1,27 @@
+<div class="h-12 bg-[#252526] flex items-center px-4">
+    <div class="flex items-center gap-2 h-full">
+        <!-- Analyze Button -->
+        <button
+            class="group flex items-center gap-1.5 px-3 py-1.5 rounded transition-colors text-vscode-text hover:bg-neutral-700 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            (click)="analyze.emit()" [disabled]="isAnalyzing" title="Vérifier la syntaxe">
+
+            <i *ngIf="!isAnalyzing" class="codicon codicon-check"></i>
+            <i *ngIf="isAnalyzing" class="codicon codicon-loading codicon-modifier-spin"></i>
+            <span class="text-xs font-medium">Vérifier</span>
+        </button>
+
+        <!-- Run Button -->
+        <button
+            class="group flex items-center gap-1.5 px-3 py-1.5 rounded transition-colors text-green-400 hover:bg-neutral-700 hover:text-green-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            (click)="run.emit()" [disabled]="isRunning" title="Exécuter le code">
+
+            <i *ngIf="!isRunning" class="codicon codicon-play"></i>
+            <i *ngIf="isRunning" class="codicon codicon-loading codicon-modifier-spin"></i>
+            <span class="text-xs font-medium">Exécuter</span>
+        </button>
+    </div>
+
+    <div class="ml-auto text-xs text-gray-500 flex items-center gap-2" *ngIf="loading">
+        <i class="codicon codicon-sync codicon-modifier-spin"></i> Traitement...
+    </div>
+</div>

@@ -1,0 +1,109 @@
+<div class="flex h-screen w-screen overflow-hidden bg-vscode-base text-vscode-text font-sans">
+
+  <!-- Activity Bar (Icons Left) -->
+  <div class="w-12 bg-vscode-activity flex flex-col items-center pt-2.5 z-10">
+    <div
+      class="w-12 h-12 flex justify-center items-center cursor-pointer opacity-60 hover:opacity-100 border-l-2 border-transparent hover:border-white active:opacity-100 active:border-white">
+      <i class="codicon codicon-files text-2xl"></i>
+    </div>
+    <div class="w-12 h-12 flex justify-center items-center cursor-pointer opacity-60 hover:opacity-100"><i
+        class="codicon codicon-search text-2xl"></i></div>
+    <div class="w-12 h-12 flex justify-center items-center cursor-pointer opacity-60 hover:opacity-100"><i
+        class="codicon codicon-source-control text-2xl"></i></div>
+    <div class="w-12 h-12 flex justify-center items-center cursor-pointer opacity-60 hover:opacity-100"><i
+        class="codicon codicon-debug-alt text-2xl"></i></div>
+    <div class="w-12 h-12 flex justify-center items-center cursor-pointer opacity-60 hover:opacity-100"><i
+        class="codicon codicon-extensions text-2xl"></i></div>
+
+    <div class="flex-1"></div>
+
+    <div class="w-12 h-12 flex justify-center items-center cursor-pointer opacity-60 hover:opacity-100"><i
+        class="codicon codicon-settings-gear text-2xl"></i></div>
+  </div>
+
+  <!-- Sidebar (Explorer) -->
+  <div class="w-64 bg-vscode-sidebar flex flex-col border-r border-vscode-border">
+    <div class="h-9 px-5 flex items-center text-[11px] tracking-wider text-gray-400 font-bold uppercase">Explorer</div>
+    <div class="flex-1">
+      <div class="py-1 pl-2 font-bold text-[11px] cursor-pointer flex items-center hover:bg-vscode-hover">
+        <i class="codicon codicon-chevron-down mr-1"></i> PROJET
+      </div>
+      <div class="mt-1">
+        <div class="px-5 py-1 cursor-pointer flex items-center gap-1.5 bg-vscode-selection text-white">
+          <i class="codicon codicon-file-code text-yellow-500"></i> main.lng
+        </div>
+        <div class="px-5 py-1 cursor-pointer flex items-center gap-1.5 hover:bg-vscode-hover text-vscode-text">
+          <i class="codicon codicon-info text-blue-400"></i> README.md
+        </div>
+        <div class="px-5 py-1 cursor-pointer flex items-center gap-1.5 hover:bg-vscode-hover text-vscode-text">
+          <i class="codicon codicon-settings"></i> settings.json
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="flex-1 flex flex-col bg-vscode-base min-w-0">
+    <!-- Tabs Header -->
+    <div class="h-9 bg-vscode-sidebar flex items-end overflow-hidden pr-2">
+      <!-- Active Tab -->
+      <div
+        class="h-full px-3 bg-vscode-base text-white flex items-center gap-2 cursor-pointer border-t border-vscode-status border-r border-[#111] text-[13px]">
+        <i class="codicon codicon-file-code text-yellow-500"></i>
+        main.lng
+        <span class="ml-1 w-5 h-5 flex justify-center items-center rounded hover:bg-gray-700 text-sm">×</span>
+      </div>
+
+      <!-- Spacer to push actions to right -->
+      <div class="flex-1 border-b border-vscode-base"></div>
+
+      <!-- Editor Actions (Run/Analyze) as Icon Buttons -->
+      <div class="flex items-center h-full bg-vscode-sidebar gap-1">
+        <button
+          class="h-7 w-7 flex justify-center items-center rounded hover:bg-gray-700 text-gray-300 hover:text-white transition-colors"
+          (click)="analyze()" [disabled]="isAnalyzing" title="Vérifier la syntaxe">
+          <i *ngIf="!isAnalyzing" class="codicon codicon-check"></i>
+          <i *ngIf="isAnalyzing" class="codicon codicon-loading codicon-modifier-spin"></i>
+        </button>
+        <button
+          class="h-7 w-7 flex justify-center items-center rounded hover:bg-gray-700 text-green-500 hover:text-green-400 transition-colors"
+          (click)="run()" [disabled]="isRunning" title="Exécuter le code">
+          <i *ngIf="!isRunning" class="codicon codicon-play"></i>
+          <i *ngIf="isRunning" class="codicon codicon-loading codicon-modifier-spin"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Editor -->
+    <div class="flex-1 relative overflow-hidden">
+      <app-editor (codeChange)="onCodeChange($event)"></app-editor>
+    </div>
+
+    <!-- Terminal / Console Panel -->
+    <div class="h-48 border-t border-vscode-border flex flex-col bg-vscode-base">
+      <div class="flex gap-5 px-5 py-2 border-b border-vscode-border text-[11px] uppercase tracking-wide">
+        <span class="cursor-pointer text-white border-b border-white pb-1">Terminal</span>
+        <span class="cursor-pointer text-gray-500 hover:text-gray-300">Problems</span>
+        <span class="cursor-pointer text-gray-500 hover:text-gray-300">Output</span>
+        <span class="cursor-pointer text-gray-500 hover:text-gray-300">Debug Console</span>
+      </div>
+      <div class="flex-1 overflow-hidden">
+        <app-console [logs]="consoleLogs"></app-console>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="h-6 bg-vscode-status text-white flex justify-between items-center px-3 text-xs z-20">
+    <div class="flex gap-4">
+      <span class="flex items-center gap-1"><i class="codicon codicon-source-control"></i> main*</span>
+      <span>0 errors</span>
+    </div>
+    <div class="flex gap-4">
+      <span>Ln 1, Col 1</span>
+      <span>UTF-8</span>
+      <span>LNG</span>
+      <span><i class="codicon codicon-bell"></i></span>
+    </div>
+  </div>
+</div>
