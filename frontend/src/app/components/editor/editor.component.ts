@@ -10,7 +10,13 @@ import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
   styleUrls: ['./editor.component.css']
 })
 export class EditorComponent {
-  @Input() code: string | undefined = `// Exemple de programme
+  @Input() code: string | undefined;
+  @Input() fileName: string = '';
+  @Output() codeChange = new EventEmitter<string>();
+  @Output() saveRequested = new EventEmitter<void>();
+
+  isDirty = false;
+  private lastSavedCode: string | undefined = `// Exemple de programme
 var x: int = 10;
 var y: int = 20;
 
@@ -22,8 +28,7 @@ if (x < y) {
     pf("x est plus petit que y");
     pf(add(x, y));
 }`;
-  @Output() codeChange = new EventEmitter<string>();
-
+  private _currentLanguage: string = 'plaintext';
 
   editorOptions = {
     theme: 'vs-dark',
@@ -93,8 +98,15 @@ if (x < y) {
   }
 
   onCodeChange(code: string) {
+    this.isDirty = this.lastSavedCode !== code;
     this.code = code;
     this.codeChange.emit(code);
+  }
+
+  save() {
+    this.lastSavedCode = this.code;
+    this.isDirty = false;
+    this.saveRequested.emit();
   }
 
   /**

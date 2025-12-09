@@ -12,6 +12,19 @@ import { FileNodeComponent } from '../file-node/file-node.component';
   styleUrls: ['./file-explorer.component.css']
 })
 export class FileExplorerComponent implements OnInit {
+  // ...
+  deleteNode(node: FileNode) {
+    if (confirm(`Supprimer ${node.name} ?`)) {
+      this.fileSystem.deleteNode(node.path);
+    }
+  }
+
+  renameNode(node: FileNode) {
+    const newName = prompt('Nouveau nom :', node.name);
+    if (newName && newName !== node.name) {
+      this.fileSystem.renameNode(node.path, newName);
+    }
+  }
   fileTree$: Observable<FileNode[]>;
   expandedFolders: Set<string> = new Set(['/src']);
 
@@ -39,10 +52,11 @@ export class FileExplorerComponent implements OnInit {
   }
 
   getIconColor(node: FileNode): string {
+    if (node.name.endsWith('.vdg')) return 'text-purple-400';
+    if (node.name.endsWith('.lng')) return 'text-orange-400';
     if (node.name.endsWith('.ts')) return 'text-blue-400';
     if (node.name.endsWith('.json')) return 'text-yellow-500';
     if (node.name.endsWith('.md')) return 'text-green-400';
-    if (node.name.endsWith('.lng')) return 'text-orange-400';
     if (node.type === 'folder') return 'text-blue-400';
     return 'text-gray-500';
   }
@@ -56,8 +70,9 @@ export class FileExplorerComponent implements OnInit {
   }
 
   createNewFile() {
-    const name = prompt('Enter file name (with extension):');
+    let name = prompt('Nom du fichier (.vdg par défaut si pas d\'extension) :');
     if (name) {
+      if (!name.includes('.')) name += '.vdg';
       this.fileSystem.createFile(name, '/src', 'file');
     }
   }

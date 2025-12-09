@@ -32,6 +32,7 @@ export class AppComponent implements OnInit {
   isRunning: boolean = false;
   
   activeFile: FileNode | null = null;
+  isDirty = false;
   showExplorer: boolean = true;
   showDocumentation: boolean = true;
   
@@ -63,6 +64,7 @@ export class AppComponent implements OnInit {
     // Mettre à jour le contenu du fichier actif
     if (this.activeFile) {
       this.fileSystem.updateFileContent(this.activeFile.path, newCode);
+      this.isDirty = true;
     }
   }
 
@@ -159,8 +161,24 @@ export class AppComponent implements OnInit {
     this.fileSystem.createFile('new.lng', '/', 'file');
   }
 
+  createNewVDGFile() {
+    this.fileSystem.createFile('nouveau.vdg', '/', 'file');
+  }
+
   createNewFolder() {
     this.fileSystem.createFile('new-folder', '/', 'folder');
+  }
+
+  saveCurrentFile() {
+    if (this.activeFile && this.editor) {
+      const currentCode = this.editor.editorInstance?.getValue();
+      if (currentCode !== undefined) {
+        this.activeFile.content = currentCode;
+        this.fileSystem.updateFileContent(this.activeFile.path, currentCode);
+        this.isDirty = false;
+        this.log(`Fichier ${this.activeFile.name} enregistré avec succès`, 'success');
+      }
+    }
   }
 
   private log(message: string, type: 'info' | 'error' | 'success') {

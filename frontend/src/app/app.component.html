@@ -17,6 +17,8 @@
             <div class="py-1">
               <div class="px-3 py-1.5 hover:bg-gray-800 cursor-pointer text-sm" 
      (click)="createNewFile()">New File</div>
+              <div class="px-3 py-1.5 hover:bg-gray-800 cursor-pointer text-sm" 
+     (click)="createNewVDGFile()">Nouveau fichier .VDG</div>
               <div class="px-3 py-1.5 hover:bg-gray-800 cursor-pointer text-sm">Import File</div>
               <div class="px-3 py-1.5 hover:bg-gray-800 cursor-pointer text-sm">Import Folder</div>
               <div class="px-3 py-1.5 hover:bg-gray-800 cursor-pointer text-sm"
@@ -61,6 +63,12 @@
           (click)="analyze()" [disabled]="isAnalyzing" title="Vérifier la syntaxe">
           <i *ngIf="!isAnalyzing" class="codicon codicon-check text-sm"></i>
           <i *ngIf="isAnalyzing" class="codicon codicon-loading codicon-modifier-spin text-sm"></i>
+        </button>
+        <button
+          class="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-800"
+          (click)="saveCurrentFile()" [disabled]="!activeFile || !isDirty" 
+          [title]="activeFile ? 'Enregistrer (Ctrl+S)' : 'Aucun fichier ouvert'">
+          <i class="codicon codicon-save text-sm" [class.text-gray-500]="!isDirty" [class.text-blue-400]="isDirty"></i>
         </button>
         <button
           class="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-800 text-green-400 hover:text-green-300"

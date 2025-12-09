@@ -29,6 +29,7 @@ export class FileTabsComponent {
   }
 
   getFileIcon(file: FileNode): string {
+    if (file.name.endsWith('.vdg')) return 'codicon codicon-file-code text-purple-400';
     if (file.name.endsWith('.lng')) return 'codicon codicon-file-code text-orange-400';
     if (file.name.endsWith('.ts')) return 'codicon codicon-file-code text-blue-400';
     if (file.name.endsWith('.json')) return 'codicon codicon-file-text text-yellow-500';

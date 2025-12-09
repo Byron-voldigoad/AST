@@ -15,6 +15,31 @@ export interface FileNode {
   providedIn: 'root'
 })
 export class FileSystemService {
+  deleteNode(path: string) {
+    const removeNode = (nodes: FileNode[]): FileNode[] =>
+      nodes.filter(node => {
+        if (node.path === path) return false;
+        if (node.children) node.children = removeNode(node.children);
+        return true;
+      });
+    this.fileTreeSubject.next(removeNode(this.fileTreeSubject.value));
+    // Fermer si ouvert
+    this.closeFile(path);
+  }
+
+  renameNode(path: string, newName: string) {
+    const updateNode = (nodes: FileNode[]): FileNode[] =>
+      nodes.map(node => {
+        if (node.path === path) {
+          const newPath = node.path.substring(0, node.path.lastIndexOf('/') + 1) + newName;
+          return { ...node, name: newName, path: newPath };
+        }
+        if (node.children) node.children = updateNode(node.children);
+        return node;
+      });
+    this.fileTreeSubject.next(updateNode(this.fileTreeSubject.value));
+  }
+
   private fileTreeSubject = new BehaviorSubject<FileNode[]>(this.initialFiles());
   private openFilesSubject = new BehaviorSubject<FileNode[]>([]);
   private activeFileSubject = new BehaviorSubject<FileNode | null>(null);
