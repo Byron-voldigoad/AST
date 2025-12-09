@@ -1,0 +1,29 @@
+/* Styles pour le mécanisme d'accordéon fluide */
+.accordion-content {
+    /* La transition doit porter sur la propriété que nous modifions : max-height */
+    transition: max-height 0.35s ease-out, padding 0.35s ease-out;
+}
+
+/* Le padding est géré par ngStyle dans le HTML pour être conditionnel à l'ouverture */
+
+/* Style pour le conteneur du snippet de code à l'intérieur de la carte */
+.grammar-card pre {
+    /* Assure que la police monospace est utilisée et que le snippet ne déborde pas */
+    font-family: 'Fira Code', 'Consolas', monospace;
+    font-size: 0.7rem; /* Taille légèrement plus petite pour le panneau latéral */
+    color: #4dc0b5; /* Couleur par défaut pour le code (Teal clair) */
+    background: #0c0c0c;
+    border: 1px solid #1f1f1f;
+    padding: 8px;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+/* Retrait des styles de votre ancien HTML qui ne sont plus nécessaires */
+.grammar-card {
+    /* Supprimer les styles background/border globaux pour utiliser ceux de Tailwind dans le HTML */
+    background: none; 
+    border: none;
+    padding: 0;
+    border-radius: 0;
+}

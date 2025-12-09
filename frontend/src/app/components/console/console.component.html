@@ -1,16 +1,45 @@
-<div class="h-full flex flex-col bg-[#0f0f0f] text-gray-300 font-mono text-[13px]">
-    <div class="flex-1 overflow-y-auto p-3" #scrollContainer>
-        <div *ngFor="let log of logs" class="py-0.5 leading-snug flex hover:bg-gray-800/30"
-            [ngClass]="{
-                'text-red-400': log.type === 'error',
-                'text-green-400': log.type === 'success',
-                'text-gray-400': log.type === 'info'
-             }">
-            <span class="text-blue-500 font-bold mr-2 select-none">></span>
-            <span class="whitespace-pre-wrap">{{ log.message }}</span>
+<div class="h-full flex flex-col font-mono text-xs overflow-hidden">
+  
+  <div class="flex-1 overflow-y-auto custom-scrollbar p-2" #scrollContainer>
+    <div
+      *ngFor="let log of logs; let i = index"
+      class="log-entry py-[2px] leading-relaxed flex items-start justify-between transition-colors duration-100"
+      [ngClass]="{
+        'hover:bg-[#1f1f1f]': log.type !== 'error',
+        'hover:bg-red-900/10': log.type === 'error'
+      }"
+    >
+      
+      <div class="flex items-start gap-2">
+        
+        <span
+          class="log-prefix flex-shrink-0 w-3 text-center"
+          [ngClass]="{
+            'text-red-500 font-bold': log.type === 'error',
+            'text-green-500 font-bold': log.type === 'success',
+            'text-blue-400': log.type === 'info'
+          }"
+        >
+          <span *ngIf="log.type === 'info'">$</span> <span *ngIf="log.type === 'error'">✖</span>
+          <span *ngIf="log.type === 'success'">✓</span>
+        </span>
+        
+        <div 
+          class="log-message text-gray-300 whitespace-pre-wrap flex-1 min-w-0"
+          [ngClass]="{'text-red-400': log.type === 'error'}"
+        >
+          <span *ngIf="log.type === 'error'" class="font-semibold mr-1 uppercase">[ERROR]</span>
+          {{ log.message }}
         </div>
-        <div *ngIf="logs.length === 0" class="text-gray-600 italic mt-2 text-xs">
-            No output yet. Run your code to see results.
-        </div>
+      </div>
+      
+      <div *ngIf="log.time" class="text-[10px] text-gray-500 ml-4 flex-shrink-0 select-none">
+        {{ log.time }}
+      </div>
     </div>
+    
+    <div *ngIf="logs.length === 0" class="text-gray-600 italic pt-2 pl-5 text-xs">
+      Console vide. Exécutez le code pour voir les diagnostics et les sorties.
+    </div>
+  </div>
 </div>

@@ -1,4 +1,11 @@
-import { Component, Input, OnChanges, SimpleChanges, ViewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnChanges,
+  SimpleChanges,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -6,10 +13,14 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './console.component.html',
-  styleUrls: ['./console.component.css']
+  styleUrls: ['./console.component.css'],
 })
 export class ConsoleComponent implements OnChanges {
-  @Input() logs: { message: string, type: 'info' | 'error' | 'success' }[] = [];
+  @Input() logs: {
+    message: string;
+    type: 'info' | 'error' | 'success';
+    time?: string;
+  }[] = [];
   @ViewChild('scrollContainer') scrollContainer!: ElementRef;
 
   ngOnChanges(changes: SimpleChanges) {
@@ -20,7 +31,8 @@ export class ConsoleComponent implements OnChanges {
 
   scrollToBottom(): void {
     if (this.scrollContainer) {
-      this.scrollContainer.nativeElement.scrollTop = this.scrollContainer.nativeElement.scrollHeight;
+      this.scrollContainer.nativeElement.scrollTop =
+        this.scrollContainer.nativeElement.scrollHeight;
     }
   }
 

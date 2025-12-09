@@ -1,1 +1,37 @@
-/* Styles handled by Tailwind CSS in template */
+/* Styles globaux pour scrollbars personnalisées (Webkit) */
+/* Appliquez ceci globalement ou dans styles.css si possible, sinon ici avec ::ng-deep */
+
+:host {
+  display: block;
+  /* Variables pour cohérence si besoin, sinon on utilise Tailwind */
+}
+
+/* Scrollbar fine et sombre pour toute l'app */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f0f0f; 
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2a2a2a; 
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3f3f3f; 
+}
+
+/* Utilitaires spécifiques si Tailwind n'est pas suffisant */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #2a2a2a #0f0f0f;
+}
+
+/* Animation douce pour le bouton analyser si besoin */
+button:active {
+  transform: translateY(1px);
+}

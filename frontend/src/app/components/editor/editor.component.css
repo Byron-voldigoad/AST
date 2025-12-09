@@ -1,15 +1,44 @@
-.editor-container {
+/* src/app/components/editor/editor.component.css */
+
+/* Container principal qui prend toute la place du parent */
+.editor-wrapper {
     height: 100%;
     width: 100%;
     overflow: hidden;
+    position: relative;
+    background-color: #0f0f0f; 
 }
 
-:host {
+/* Force le composant Monaco à remplir le wrapper */
+.monaco-host {
     display: block;
     height: 100%;
+    width: 100%;
 }
 
-ngx-monaco-editor {
-    height: 100%;
-    width: 100%;
+/* ---------------------------------------------------- */
+/* AMÉLIORATIONS VISUELLES DES MARKERS MONACO */
+/* ---------------------------------------------------- */
+
+/* Cible l'icône d'erreur dans la gouttière des numéros de ligne (margin) */
+/* C'est là que l'icône d'erreur/warning apparaît */
+:host ::ng-deep .monaco-editor .margin .monaco-marker-hover {
+    /* Style pour le fond de la ligne d'erreur dans la gouttière */
+    background: rgba(255, 0, 0, 0.15) !important; 
+}
+
+/* Cible la ligne dans la zone de code qui a des erreurs (soulignement) */
+:host ::ng-deep .monaco-editor .view-lines .squiggly-error {
+    /* Assure que le soulignement rouge des erreurs est bien visible */
+    border-bottom: 2px solid #FF5555 !important;
+}
+
+/* Cible le soulignement d'une erreur entière (si l'erreur couvre plusieurs caractères) */
+:host ::ng-deep .monaco-editor .view-lines .error-decoration {
+    border-bottom: 2px solid #FF5555 !important;
+}
+
+/* Amélioration de la ligne courante active (pour un look plus flat/discret) */
+:host ::ng-deep .monaco-editor .lines-content .view-line.monaco-mouse-cursor-text {
+    /* Vous pouvez ajuster cela si le 'editor.lineHighlightBackground' du thème n'est pas suffisant */
 }

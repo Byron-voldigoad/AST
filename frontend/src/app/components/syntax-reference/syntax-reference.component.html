@@ -1,155 +1,56 @@
-<div class="h-full w-full bg-[#151515] text-gray-300">
-    <div class="h-9 border-b border-gray-800 flex items-center px-4">
-        <div class="text-xs font-medium tracking-wider text-gray-500">SYNTAX REFERENCE</div>
-        <div class="ml-auto text-xs text-blue-400">&#123;&#123; currentLanguage &#125;&#125;</div>
+<div class="h-full w-full p-4 space-y-2 text-gray-300">
+
+  <div *ngFor="let section of sections" class="accordion-item">
+    
+    <button
+      (click)="toggleSection(section)"
+      class="w-full text-left py-2 px-3 flex items-center justify-between transition-colors duration-200 border-b border-[#1f1f1f] hover:bg-[#161616] focus:outline-none"
+    >
+      <span class="text-sm font-semibold uppercase tracking-wide text-gray-300 flex items-center">
+        <svg *ngIf="section.key === 'variables_types'" class="w-4 h-4 mr-2 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+        <svg *ngIf="section.key === 'functions'" class="w-4 h-4 mr-2 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2-4v4m0-4h4m0 0l-4-4m4 4l-4 4m-12-4h4"></path></svg>
+        <svg *ngIf="section.key === 'control_flow'" class="w-4 h-4 mr-2 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <svg *ngIf="section.key === 'classes_objects'" class="w-4 h-4 mr-2 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0l-7 7m7-7l-7-7"></path></svg>
+        <svg *ngIf="section.key === 'expressions'" class="w-4 h-4 mr-2 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0011.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+        <svg *ngIf="section.key === 'program_structure'" class="w-4 h-4 mr-2 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+        
+        {{ section.title }}
+      </span>
+
+      <svg class="w-4 h-4 text-gray-400 transition-transform duration-300" 
+            [class.rotate-90]="section.open" 
+            [class.rotate-0]="!section.open" 
+            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+      </svg>
+    </button>
+
+    <div 
+      class="accordion-content overflow-hidden"
+      [style.maxHeight]="section.open ? '1000px' : '0px'" 
+      [ngStyle]="{'padding-bottom': section.open ? '1rem' : '0'}"
+    >
+      <div class="px-3 pt-3 space-y-3">
+        
+        <div *ngFor="let entry of getContent(section.key)" class="grammar-card bg-[#111111] border border-[#222222] rounded-md shadow-sm p-3 hover:border-teal-600/50 transition-colors">
+          
+          <h4 class="text-xs font-medium text-gray-200 mb-1">{{ entry.title }}</h4>
+          
+          <pre class="font-mono text-[11px] bg-[#0c0c0c] border border-[#1f1f1f] rounded p-2 overflow-x-auto text-teal-300/80 mb-2 whitespace-pre-wrap">{{ entry.snippet }}</pre>
+          
+          <p class="text-[10px] text-gray-400 leading-tight mb-3">{{ entry.desc }}</p>
+
+          <div *ngIf="entry.example">
+            <h5 class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1 border-t border-[#1f1f1f] pt-2">Exemple:</h5>
+            <pre class="font-mono text-[11px] bg-[#0c0c0c] border border-[#1f1f1f] rounded p-2 overflow-x-auto text-yellow-300/80 whitespace-pre-wrap">{{ entry.example }}</pre>
+          </div>
+          </div>
+
+        <div *ngIf="getContent(section.key).length === 0" class="text-xs text-gray-500 italic p-3">
+          Aucune référence syntaxique disponible pour cette section.
+        </div>
+
+      </div>
     </div>
-
-    <div class="h-9 border-b border-gray-800 flex items-center px-2">
-        <button *ngFor="let tab of tabs" 
-                class="px-3 py-1.5 text-xs rounded hover:bg-gray-800"
-                [class.bg-gray-800]="activeTab === tab"
-                (click)="setActiveTab(tab)">
-            &#123;&#123; tab &#125;&#125;
-        </button>
-    </div>
-
-    <div class="flex-1 overflow-y-auto p-4">
-        <ng-container [ngSwitch]="activeTab">
-            
-            <div *ngSwitchCase="'Variables'" class="space-y-6">
-                <h3 class="text-sm font-medium text-gray-300 mb-3">Variables</h3>
-                <div class="space-y-4">
-                    <div>
-                        <div class="text-xs text-gray-500 mb-1">Declaration</div>
-                        <div class="bg-gray-900 rounded p-3 font-mono text-sm">
-                            <span class="text-purple-400">var</span>
-                            <span class="text-blue-400"> x</span>
-                            <span class="text-gray-400">: </span>
-                            <span class="text-green-400">int</span>
-                            <span class="text-gray-400"> = </span>
-                            <span class="text-yellow-300">10</span>
-                            <span class="text-gray-400">;</span>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <div class="text-xs text-gray-500 mb-1">Constant</div>
-                        <div class="bg-gray-900 rounded p-3 font-mono text-sm">
-                            <span class="text-purple-400">const</span>
-                            <span class="text-blue-400"> PI</span>
-                            <span class="text-gray-400">: </span>
-                            <span class="text-green-400">float</span>
-                            <span class="text-gray-400"> = </span>
-                            <span class="text-yellow-300">3.14159</span>
-                            <span class="text-gray-400">;</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div *ngSwitchCase="'Functions'" class="space-y-6">
-                <h3 class="text-sm font-medium text-gray-300 mb-3">Functions</h3>
-                <div class="bg-gray-900 rounded p-3 font-mono text-sm">
-                    <span class="text-purple-400">function</span>
-                    <span class="text-blue-400"> add</span>
-                    <span class="text-gray-400">(</span>
-                    <span class="text-blue-400">a</span>
-                    <span class="text-gray-400">: </span>
-                    <span class="text-green-400">int</span>
-                    <span class="text-gray-400">, </span>
-                    <span class="text-blue-400">b</span>
-                    <span class="text-gray-400">: </span>
-                    <span class="text-green-400">int</span>
-                    <span class="text-gray-400">): </span>
-                    <span class="text-green-400">int</span>
-                    <span class="text-gray-400"> &#123;</span>
-                    <div class="ml-4">
-                        <span class="text-purple-400">return</span>
-                        <span class="text-blue-400"> a</span>
-                        <span class="text-gray-400"> + </span>
-                        <span class="text-blue-400">b</span>
-                        <span class="text-gray-400">;</span>
-                    </div>
-                    <span class="text-gray-400">&#125;</span>
-                </div>
-            </div>
-
-            <div *ngSwitchCase="'Loops'" class="space-y-6">
-                <h3 class="text-sm font-medium text-gray-300 mb-3">Loops</h3>
-                <div class="space-y-4">
-                    <div>
-                        <div class="text-xs text-gray-500 mb-1">For Loop</div>
-                        <div class="bg-gray-900 rounded p-3 font-mono text-sm">
-                            <span class="text-purple-400">for</span>
-                            <span class="text-gray-400"> (</span>
-                            <span class="text-purple-400">var</span>
-                            <span class="text-blue-400"> i</span>
-                            <span class="text-gray-400">: </span>
-                            <span class="text-green-400">int</span>
-                            <span class="text-gray-400"> = </span>
-                            <span class="text-yellow-300">0</span>
-                            <span class="text-gray-400">; </span>
-                            <span class="text-blue-400">i</span>
-                            <span class="text-gray-400"> &lt; </span>
-                            <span class="text-yellow-300">10</span>
-                            <span class="text-gray-400">; </span>
-                            <span class="text-blue-400">i</span>
-                            <span class="text-gray-400">++) &#123;</span>
-                            <div class="ml-4">
-                                <span class="text-gray-500">// loop body</span>
-                            </div>
-                            <span class="text-gray-400">&#125;</span>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <div class="text-xs text-gray-500 mb-1">While Loop</div>
-                        <div class="bg-gray-900 rounded p-3 font-mono text-sm">
-                            <span class="text-purple-400">while</span>
-                            <span class="text-gray-400"> (</span>
-                            <span class="text-blue-400">condition</span>
-                            <span class="text-gray-400">) &#123;</span>
-                            <div class="ml-4">
-                                <span class="text-gray-500">// loop body</span>
-                            </div>
-                            <span class="text-gray-400">&#125;</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div *ngSwitchCase="'Classes'" class="space-y-6">
-                <h3 class="text-sm font-medium text-gray-300 mb-3">Classes</h3>
-                <div class="bg-gray-900 rounded p-3 font-mono text-sm">
-                    <span class="text-purple-400">class</span>
-                    <span class="text-blue-400"> Person</span>
-                    <span class="text-gray-400"> &#123;</span>
-                    <div class="ml-4">
-                        <span class="text-blue-400">name</span>
-                        <span class="text-gray-400">: </span>
-                        <span class="text-green-400">string</span>
-                        <span class="text-gray-400">;</span>
-                        <br>
-                        <span class="text-purple-400">constructor</span>
-                        <span class="text-gray-400">(</span>
-                        <span class="text-blue-400">name</span>
-                        <span class="text-gray-400">: </span>
-                        <span class="text-green-400">string</span>
-                        <span class="text-gray-400">) &#125;</span>
-                        <div class="ml-4">
-                            <span class="text-purple-400">this</span>
-                            <span class="text-gray-400">.</span>
-                            <span class="text-blue-400">name</span>
-                            <span class="text-gray-400"> = </span>
-                            <span class="text-blue-400">name</span>
-                            <span class="text-gray-400">;</span>
-                        </div>
-                        <span class="text-gray-400">&#125;</span>
-                    </div>
-                    <span class="text-gray-400">&#125;</span>
-                </div>
-            </div>
-
-        </ng-container>
-    </div>
+  </div>
 </div>

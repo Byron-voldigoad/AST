@@ -8,35 +8,42 @@ import { FileTabsComponent } from './components/file-tabs/file-tabs.component';
 import { ApiService } from './services/api.service';
 import { FileSystemService, FileNode } from './services/file-system.service';
 import { Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
-    CommonModule, 
-    EditorComponent, 
+    CommonModule,
+    EditorComponent,
     ConsoleComponent,
     SyntaxReferenceComponent,
     FileExplorerComponent,
-    FileTabsComponent
+    FileTabsComponent,
   ],
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.css']
+  styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit {
+  title = 'frontend';
   @ViewChild(EditorComponent) editor!: EditorComponent;
-  
-  consoleLogs: { message: string, type: 'info' | 'error' | 'success' }[] = [];
+
+  consoleLogs: {
+    message: string;
+    type: 'info' | 'error' | 'success';
+    time?: string;
+  }[] = [];
   isAnalyzing: boolean = false;
   isRunning: boolean = false;
-  
+  isConsoleOpen: boolean = false;
+
   activeFile: FileNode | null = null;
   isDirty = false;
-  showExplorer: boolean = true;
-  showDocumentation: boolean = true;
-  
+  showExplorer: boolean = false; // no file explorer for this simplified UI
+  showDocumentation: boolean = true; // grammar panel visible on the right
+
   private codeChangeSubject = new Subject<string>();
+  editorFallback: string = '';
 
   constructor(
     private apiService: ApiService,
@@ -45,48 +52,72 @@ export class AppComponent implements OnInit {
 
   ngOnInit() {
     // Analyse automatique
-    this.codeChangeSubject.pipe(
-      debounceTime(500),
-      distinctUntilChanged(),
-    ).subscribe(code => {
-      this.analyze(true);
-    });
+    this.codeChangeSubject
+      .pipe(debounceTime(500), distinctUntilChanged())
+      .subscribe((code) => {
+        this.analyze(true);
+      });
 
     // Écouter les changements de fichier actif
-    this.fileSystem.activeFile$.subscribe(file => {
+    this.fileSystem.activeFile$.subscribe((file) => {
       this.activeFile = file;
+    });
+
+    // Si aucun fichier actif, ouvrir automatiquement un fichier par défaut (par ex. /main.lng)
+    this.fileSystem.fileTree$.pipe(take(1)).subscribe((tree) => {
+      if (!this.activeFile) {
+        const findFirstFile = (nodes: FileNode[]): FileNode | null => {
+          for (const n of nodes) {
+            if (n.type === 'file') return n;
+            if (n.children) {
+              const found = findFirstFile(n.children);
+              if (found) return found;
+            }
+          }
+          return null;
+        };
+
+        const first = findFirstFile(tree);
+        if (first) this.fileSystem.openFile(first);
+      }
     });
   }
 
   onCodeChange(newCode: string) {
     this.codeChangeSubject.next(newCode);
-    
+
     // Mettre à jour le contenu du fichier actif
     if (this.activeFile) {
       this.fileSystem.updateFileContent(this.activeFile.path, newCode);
       this.isDirty = true;
+    } else {
+      // keep fallback content when no file is active so user can type arbitrary code
+      this.editorFallback = newCode;
     }
   }
 
   analyze(silent: boolean = false) {
-    // Synchroniser le code depuis l'éditeur Monaco
+    // Récupérer le code depuis l'éditeur (ou fallback) et l'envoyer au backend
+    let code: string | undefined = undefined;
     if (this.editor && this.editor.editorInstance) {
-      const currentCode = this.editor.editorInstance.getValue();
+      code = this.editor.editorInstance.getValue();
       if (this.activeFile) {
-        this.activeFile.content = currentCode;
+        this.activeFile.content = code;
       }
     }
-    if (!this.activeFile?.content?.trim()) return;
+    if (!code) code = this.activeFile?.content || this.editorFallback;
+    if (!code?.trim()) return;
 
     this.isAnalyzing = true;
     if (!silent) this.consoleLogs = [];
+    if (!silent) this.isConsoleOpen = true;
 
-    console.log('Code envoyé au backend:', this.activeFile.content);
-    this.apiService.parse(this.activeFile.content).subscribe({
+    console.log('Code envoyé au backend:', code);
+    this.apiService.parse(code).subscribe({
       next: (response) => {
         console.log('Réponse parse:', response);
         this.isAnalyzing = false;
-        
+
         const errors = Array.isArray(response.errors) ? response.errors : [];
         if (errors.length > 0) {
           this.editor.setErrors(errors);
@@ -102,27 +133,28 @@ export class AppComponent implements OnInit {
       },
       error: (err) => {
         this.isAnalyzing = false;
-        if (!silent) this.log('Erreur serveur lors de l\'analyse.', 'error');
-      }
+        if (!silent) this.log("Erreur serveur lors de l'analyse.", 'error');
+      },
     });
   }
 
   run() {
-    // Synchroniser le code depuis l'éditeur Monaco
+    // Récupérer le code depuis l'éditeur (ou fallback)
+    let code: string | undefined = undefined;
     if (this.editor && this.editor.editorInstance) {
-      const currentCode = this.editor.editorInstance.getValue();
-      if (this.activeFile) {
-        this.activeFile.content = currentCode;
-      }
+      code = this.editor.editorInstance.getValue();
+      if (this.activeFile) this.activeFile.content = code;
     }
-    if (!this.activeFile?.content?.trim()) return;
+    if (!code) code = this.activeFile?.content || this.editorFallback;
+    if (!code?.trim()) return;
 
     this.isRunning = true;
     this.consoleLogs = [];
+    this.isConsoleOpen = true;
     this.log('Exécution en cours...', 'info');
 
-    console.log('Code envoyé à l\'exécution:', this.activeFile.content);
-    this.apiService.run(this.activeFile.content).subscribe({
+    console.log("Code envoyé à l'exécution:", code);
+    this.apiService.run(code).subscribe({
       next: (response) => {
         this.isRunning = false;
 
@@ -132,6 +164,7 @@ export class AppComponent implements OnInit {
             this.log(`Erreur ligne ${err.line}: ${err.message}`, 'error')
           );
           this.log('Échec de la compilation.', 'error');
+          this.isRunning = false;
           return;
         }
 
@@ -139,12 +172,13 @@ export class AppComponent implements OnInit {
           response.output.forEach((line: string) => this.log(line, 'info'));
         }
 
-        this.log('Fin de l\'exécution.', 'success');
+        this.log("Fin de l'exécution.", 'success');
+        this.isRunning = false;
       },
       error: (err) => {
         this.isRunning = false;
-        this.log('Erreur serveur lors de l\'exécution.', 'error');
-      }
+        this.log("Erreur serveur lors de l'exécution.", 'error');
+      },
     });
   }
 
@@ -154,6 +188,22 @@ export class AppComponent implements OnInit {
 
   toggleDocumentation() {
     this.showDocumentation = !this.showDocumentation;
+  }
+
+  toggleConsole() {
+    this.isConsoleOpen = !this.isConsoleOpen;
+  }
+
+  clearLogs() {
+    this.consoleLogs = [];
+  }
+
+  getLogCount(): number {
+    return this.consoleLogs.length;
+  }
+
+  hasErrors(): boolean {
+    return this.consoleLogs.some((l) => l.type === 'error');
   }
 
   // Méthodes pour créer fichiers/dossiers
@@ -176,13 +226,19 @@ export class AppComponent implements OnInit {
         this.activeFile.content = currentCode;
         this.fileSystem.updateFileContent(this.activeFile.path, currentCode);
         this.isDirty = false;
-        this.log(`Fichier ${this.activeFile.name} enregistré avec succès`, 'success');
+        this.log(
+          `Fichier ${this.activeFile.name} enregistré avec succès`,
+          'success'
+        );
       }
     }
   }
 
   private log(message: string, type: 'info' | 'error' | 'success') {
-    this.consoleLogs.push({ message, type });
+    const t = new Date().toLocaleTimeString();
+    this.consoleLogs.push({ message, type, time: t });
+    // auto-open console when something is logged
+    this.isConsoleOpen = true;
   }
 
   ngOnDestroy() {

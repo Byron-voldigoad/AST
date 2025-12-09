@@ -1,123 +1,83 @@
-<div class="flex h-screen w-screen overflow-hidden bg-[#0f0f0f] text-gray-300 font-sans">
+<div class="h-screen w-screen bg-[#0f0f0f] text-gray-300 font-sans flex flex-col overflow-hidden">
   
-  <!-- PANEL GAUCHE : Explorateur (conditionnel) -->
-  <app-file-explorer *ngIf="showExplorer"></app-file-explorer>
+  <header class="h-12 flex items-center justify-between px-4 border-b border-[#2a2a2a] bg-[#141414]">
+    <div class="flex items-center gap-3">
+      <div class="w-2 h-2 rounded-full bg-teal-500 shadow-[0_0_8px_rgba(20,184,166,0.5)]"></div>
+      <h1 class="text-sm font-medium tracking-wide text-gray-200">ANALYSEUR SYNTAXIQUE</h1>
+    </div>
 
-  <!-- PANEL CENTRE : Éditeur -->
-  <div class="flex-1 flex flex-col bg-[#0f0f0f] min-w-0">
+    <button
+      (click)="run()"
+      [disabled]="isAnalyzing"
+      class="group relative px-4 py-1.5 bg-teal-900/30 hover:bg-teal-900/50 text-teal-400 text-xs uppercase font-bold tracking-wider rounded border border-teal-900/50 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <span class="flex items-center gap-2">
+        <span *ngIf="!isAnalyzing">▶ Exécuter</span>
+        <span *ngIf="isAnalyzing">Traitement...</span>
+      </span>
+    </button>
+  </header>
+
+  <div class="flex-1 flex overflow-hidden relative">
     
-    <!-- Menu -->
-    <div class="h-8 border-b border-gray-800 flex items-center px-4 text-xs">
-      <div class="flex items-center gap-4">
-        
-        <!-- File Menu -->
-        <div class="relative group">
-          <span class="cursor-pointer hover:text-white">File</span>
-          <div class="hidden group-hover:block absolute top-full left-0 mt-1 bg-[#252526] border border-gray-700 rounded shadow-lg z-50 min-w-40">
-            <div class="py-1">
-              <div class="px-3 py-1.5 hover:bg-gray-800 cursor-pointer text-sm" 
-     (click)="createNewFile()">New File</div>
-              <div class="px-3 py-1.5 hover:bg-gray-800 cursor-pointer text-sm" 
-     (click)="createNewVDGFile()">Nouveau fichier .VDG</div>
-              <div class="px-3 py-1.5 hover:bg-gray-800 cursor-pointer text-sm">Import File</div>
-              <div class="px-3 py-1.5 hover:bg-gray-800 cursor-pointer text-sm">Import Folder</div>
-              <div class="px-3 py-1.5 hover:bg-gray-800 cursor-pointer text-sm"
-     (click)="createNewFolder()">New Folder</div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- Edit Menu -->
-        <div class="relative group">
-          <span class="cursor-pointer hover:text-white">Edit</span>
-          <div class="hidden group-hover:block absolute top-full left-0 mt-1 bg-[#252526] border border-gray-700 rounded shadow-lg z-50 min-w-40">
-            <div class="py-1">
-              <div class="px-3 py-1.5 hover:bg-gray-800 cursor-pointer text-sm" onclick="document.execCommand('undo')">Undo</div>
-              <div class="px-3 py-1.5 hover:bg-gray-800 cursor-pointer text-sm" onclick="document.execCommand('redo')">Redo</div>
-            </div>
-          </div>
-        </div>
-        
-        <!-- View Menu -->
-        <div class="relative group">
-          <span class="cursor-pointer hover:text-white">View</span>
-          <div class="hidden group-hover:block absolute top-full left-0 mt-1 bg-[#252526] border border-gray-700 rounded shadow-lg z-50 min-w-40">
-            <div class="py-1">
-              <div class="px-3 py-1.5 hover:bg-gray-800 cursor-pointer text-sm" 
-                   (click)="toggleExplorer()">
-                {{ showExplorer ? 'Hide' : 'Show' }} Explorer
-              </div>
-              <div class="px-3 py-1.5 hover:bg-gray-800 cursor-pointer text-sm"
-                   (click)="toggleDocumentation()">
-                {{ showDocumentation ? 'Hide' : 'Show' }} Documentation
-              </div>
-            </div>
-          </div>
-        </div>
+    <main class="flex-1 flex flex-col min-w-0 bg-[#0f0f0f]">
+      <div class="h-8 flex items-center px-4 bg-[#0f0f0f] text-xs text-gray-500 border-b border-[#1f1f1f]">
+        <span class="mr-2">📝</span> main.code
       </div>
+      
+      <div class="flex-1 relative">
+        <app-editor
+          [code]="activeFile?.content || editorFallback"
+          (codeChange)="onCodeChange($event)"
+          class="absolute inset-0"
+        ></app-editor>
+      </div>
+    </main>
 
-      <!-- Boutons d'action -->
-      <div class="ml-auto flex items-center gap-2">
-        <button
-          class="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-800"
-          (click)="analyze()" [disabled]="isAnalyzing" title="Vérifier la syntaxe">
-          <i *ngIf="!isAnalyzing" class="codicon codicon-check text-sm"></i>
-          <i *ngIf="isAnalyzing" class="codicon codicon-loading codicon-modifier-spin text-sm"></i>
-        </button>
-        <button
-          class="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-800"
-          (click)="saveCurrentFile()" [disabled]="!activeFile || !isDirty" 
-          [title]="activeFile ? 'Enregistrer (Ctrl+S)' : 'Aucun fichier ouvert'">
-          <i class="codicon codicon-save text-sm" [class.text-gray-500]="!isDirty" [class.text-blue-400]="isDirty"></i>
-        </button>
-        <button
-          class="w-7 h-7 flex items-center justify-center rounded hover:bg-gray-800 text-green-400 hover:text-green-300"
-          (click)="run()" [disabled]="isRunning" title="Exécuter le code">
-          <i *ngIf="!isRunning" class="codicon codicon-play text-sm"></i>
-          <i *ngIf="isRunning" class="codicon codicon-loading codicon-modifier-spin text-sm"></i>
-        </button>
+    <aside class="w-80 border-l border-[#2a2a2a] bg-[#111111] flex flex-col">
+      <div class="h-8 flex items-center px-4 border-b border-[#2a2a2a] bg-[#161616]">
+        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Référence Grammaire</span>
       </div>
-    </div>
+      <div class="flex-1 overflow-y-auto custom-scrollbar">
+        <app-syntax-reference></app-syntax-reference>
+      </div>
+    </aside>
 
-    <!-- Onglets des fichiers -->
-    <app-file-tabs></app-file-tabs>
-
-    <!-- Zone d'édition -->
-    <!-- Zone d'édition -->
-<div class="flex-1 relative overflow-hidden">
-  <app-editor 
-    *ngIf="activeFile && activeFile.content !== undefined"
-    [code]="activeFile.content || ''"
-    (codeChange)="onCodeChange($event)">
-  </app-editor>
-  <div *ngIf="!activeFile" class="flex items-center justify-center h-full text-gray-600">
-    Select a file to start editing
-  </div>
-</div>
-
-    <!-- Console -->
-    <div class="h-40 border-t border-gray-800 flex flex-col bg-[#0f0f0f]">
-      <div class="h-8 border-b border-gray-800 flex items-center px-4 text-xs text-gray-500">
-        <span class="cursor-pointer hover:text-white">Terminal</span>
-      </div>
-      <div class="flex-1 overflow-hidden">
-        <app-console [logs]="consoleLogs"></app-console>
-      </div>
-    </div>
-
-    <!-- Status bar -->
-    <div class="h-6 border-t border-gray-800 bg-[#151515] flex items-center justify-between px-4 text-xs text-gray-500">
-      <div class="flex items-center gap-4">
-        <span>Ready</span>
-        <span>{{ activeFile?.language || 'text' }}</span>
-      </div>
-      <div class="flex items-center gap-4">
-        <span>UTF-8</span>
-        <span>LF</span>
-      </div>
-    </div>
   </div>
 
-  <!-- PANEL DROIT : Documentation (conditionnel) -->
-  <app-syntax-reference *ngIf="showDocumentation"></app-syntax-reference>
+  <footer 
+    class="border-t border-[#2a2a2a] bg-[#0c0c0c] flex flex-col transition-[height] duration-300 ease-in-out"
+    [style.height]="isConsoleOpen ? '250px' : '32px'"
+  >
+    <div 
+      class="h-8 min-h-[32px] flex items-center justify-between px-4 cursor-pointer hover:bg-[#1f1f1f] select-none"
+      (click)="toggleConsole()"
+    >
+      <div class="flex items-center gap-3">
+        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
+          <svg class="w-3 h-3 transition-transform duration-300" [class.rotate-0]="!isConsoleOpen" [class.rotate-180]="isConsoleOpen" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+          Console / Diagnostics
+        </span>
+        
+        <span *ngIf="consoleLogs.length > 0" class="flex items-center gap-1 text-[10px] bg-red-900/30 text-red-400 px-1.5 py-0.5 rounded border border-red-900/50">
+          {{ consoleLogs.length }}
+        </span>
+      </div>
+
+      <div class="flex items-center gap-2" (click)="$event.stopPropagation()">
+        <button 
+          (click)="clearLogs()" 
+          class="p-1 hover:text-white text-gray-500 transition-colors"
+          title="Effacer la console"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-auto custom-scrollbar p-2 font-mono text-sm bg-[#090909]">
+      <app-console [logs]="consoleLogs"></app-console>
+    </div>
+  </footer>
+
 </div>

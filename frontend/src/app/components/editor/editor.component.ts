@@ -31,12 +31,27 @@ if (x < y) {
   private _currentLanguage: string = 'plaintext';
 
   editorOptions = {
-    theme: 'vs-dark',
+    theme: 'lng-theme', // Assurez-vous d'utiliser votre thème personnalisé !
     language: 'custom-lang',
-    minimap: { enabled: true },
-    scrollBeyondLastLine: false,
+    // --- Améliorations ---
+    fontFamily: 'Fira Code, Consolas, "Courier New", monospace', // Prioriser une police lisible
     fontSize: 14,
-    automaticLayout: true
+    lineHeight: 22, // Augmente l'aération entre les lignes pour le confort visuel
+    minimap: { enabled: false }, // Retiré pour un look minimaliste et plus d'espace
+    scrollBeyondLastLine: false,
+    automaticLayout: true,
+    renderLineHighlight: 'all', // Surligne la ligne complète, pas seulement le contenu
+    // Configuration de la scrollbar plus discrète
+    scrollbar: {
+      useShadows: false,
+      vertical: 'visible',
+      verticalScrollbarSize: 8, // Plus fine
+      horizontal: 'hidden' // Pas de scrollbar horizontale
+    },
+    lineNumbersMinChars: 3, // Assure un espace suffisant pour les numéros de ligne
+    cursorStyle: 'line', // Curseur standard
+    cursorBlinking: 'smooth',
+    // --- Fin Améliorations ---
   };
 
   editorInstance: any;
@@ -49,15 +64,31 @@ if (x < y) {
     monaco.languages.register({ id: 'custom-lang' });
 
     // Définition d'un thème personnalisé pour avoir du Orange spécifique
-    monaco.editor.defineTheme('lng-theme', {
+   monaco.editor.defineTheme('lng-theme', {
       base: 'vs-dark',
       inherit: true,
       rules: [
-        { token: 'native-func', foreground: 'FFA500' }, // Orange vif
-        { token: 'type', foreground: '4EC9B0' },
-        { token: 'keyword', foreground: '569CD6' }
+        // COULEURS MINIMALISTES ET PROFESSIONNELLES
+        { token: 'native-func', foreground: 'FFB86C' }, // Orange plus doux (VSCode standard)
+        { token: 'type', foreground: '8BE9FD' }, // Bleu Cyan (VSCode standard)
+        { token: 'keyword', foreground: 'FF79C6' }, // Rose (VSCode standard)
+        { token: 'string', foreground: 'F1FA8C' }, // Jaune
+        { token: 'comment', foreground: '6272A4', fontStyle: 'italic' }, // Gris bleuté
+        { token: 'delimiter', foreground: 'F8F8F2' },
+        { token: 'number', foreground: 'BD93F9' }, // Violet
       ],
-      colors: {}
+      colors: {
+        // --- Améliorations de l'interface ---
+        'editor.background': '#0f0f0f', // Le fond de votre application
+        'editor.foreground': '#F8F8F2', // Texte principal (Blanc Cassé)
+        'editorLineNumber.foreground': '#595959', // Numéros de ligne gris discret
+        'editorLineNumber.activeForeground': '#a3a3a3', // Numéro de ligne courante
+        'editor.lineHighlightBackground': '#1a1a1a', // Ligne courante très sombre
+        'editor.selectionBackground': '#2a4459', // Sélection bleue foncée
+        'editorBracketMatch.background': '#323232', // Fond des parenthèses/crochets correspondants
+        // Couleur pour les marqueurs d'erreurs dans la marge
+        'editorGutter.modifiedBackground': '#FF0000', // Pas utilisé directement pour les erreurs, mais utile
+      }
     });
 
     // Appliquer le thème immédiatement

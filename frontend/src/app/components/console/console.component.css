@@ -1,1 +1,29 @@
-/* Styles handled by Tailwind CSS in template */
+/* console.component.css */
+
+:host {
+    display: block;
+    height: 100%; /* S'assure de remplir le footer parent */
+}
+
+/* Assurer un alignement vertical parfait pour les lignes de log */
+.log-entry {
+    align-items: baseline;
+    padding-left: 5px;
+}
+
+.log-message {
+    /* Utilisation de `flex-1 min-w-0` dans le HTML pour la gestion du wrap */
+    word-break: break-all;
+    white-space: pre-wrap;
+}
+
+/* Surcharge des scrollbars si non gérées globalement */
+/* Si vous utilisez le app.component.css précédent, cette partie est optionnelle */
+/*
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #3a3a3a;
+}
+*/

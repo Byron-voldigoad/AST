@@ -63,8 +63,16 @@ export class FileSystemService {
             icon: 'file',
             language: 'typescript',
             content: `// Main entry point
-export function main() {
-  console.log("Hello World");
+var x: int = 10;
+var y: int = 20;
+
+function add(a: int, b: int): int {
+    return a + b;
+}
+
+if (x < y) {
+    pf("x est plus petit que y");
+    pf(add(x, y));
 }`
           },
           {
