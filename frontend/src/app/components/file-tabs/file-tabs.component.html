@@ -1,0 +1,20 @@
+<div class="h-9 border-b border-gray-800 flex items-end bg-[#151515] overflow-x-auto">
+  <ng-container *ngIf="openFiles$ | async as openFiles">
+    <div *ngFor="let file of openFiles" 
+         class="h-full px-4 flex items-center gap-2 text-sm cursor-pointer min-w-fit shrink-0"
+         [class.bg-[#0f0f0f]]="(activeFile$ | async)?.path === file.path"
+         [class.border-t]="(activeFile$ | async)?.path === file.path"
+         [class.border-blue-500]="(activeFile$ | async)?.path === file.path"
+         [class.text-gray-500]="(activeFile$ | async)?.path !== file.path"
+         (click)="setActiveFile(file)">
+      
+      <i [class]="getFileIcon(file)" class="text-sm"></i>
+      <span class="truncate max-w-32">{{ file.name }}</span>
+      
+      <button class="w-5 h-5 flex items-center justify-center rounded hover:bg-gray-800 ml-2 text-xs"
+              (click)="closeFile(file, $event)">
+        ×
+      </button>
+    </div>
+  </ng-container>
+</div>

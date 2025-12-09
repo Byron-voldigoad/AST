@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
 
@@ -10,9 +10,7 @@ import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
   styleUrls: ['./editor.component.css']
 })
 export class EditorComponent {
-  @Output() codeChange = new EventEmitter<string>();
-
-  code: string = `// Exemple de programme
+  @Input() code: string | undefined = `// Exemple de programme
 var x: int = 10;
 var y: int = 20;
 
@@ -23,8 +21,9 @@ function add(a: int, b: int): int {
 if (x < y) {
     pf("x est plus petit que y");
     pf(add(x, y));
-}
-`;
+}`;
+  @Output() codeChange = new EventEmitter<string>();
+
 
   editorOptions = {
     theme: 'vs-dark',
@@ -94,6 +93,7 @@ if (x < y) {
   }
 
   onCodeChange(code: string) {
+    this.code = code;
     this.codeChange.emit(code);
   }
 
@@ -101,51 +101,51 @@ if (x < y) {
    * Applique les marqueurs d'erreurs (soulignement rouge) dans l'éditeur.
    */
   setErrors(errors: { message: string, line: number }[]) {
-  console.log('setErrors appelé avec:', errors);
-  
-  if (!this.editorInstance) {
-    console.error('Éditeur non initialisé !');
-    return;
-  }
-
-  const monaco = (window as any).monaco;
-  const model = this.editorInstance.getModel();
-  
-  // Nettoyer d'abord les anciens marqueurs
-  monaco.editor.setModelMarkers(model, 'custom-lang', []);
-  
-  // Attendre un tick pour s'assurer que le nettoyage est appliqué
-  setTimeout(() => {
-    if (errors && errors.length > 0) {
-      const markers = errors.map(err => {
-        const lineContent = model.getLineContent(err.line);
-        return {
-          severity: monaco.MarkerSeverity.Error,
-          message: err.message,
-          startLineNumber: err.line,
-          startColumn: 1,
-          endLineNumber: err.line,
-          endColumn: lineContent.length + 1
-        };
-      });
-      
-      console.log('Application des marqueurs:', markers);
-      monaco.editor.setModelMarkers(model, 'custom-lang', markers);
+    console.log('setErrors appelé avec:', errors);
+    
+    if (!this.editorInstance) {
+      console.error('Éditeur non initialisé !');
+      return;
     }
+
+    const monaco = (window as any).monaco;
+    const model = this.editorInstance.getModel();
     
-    // FORCER UNE MISE À JOUR DU RENDU
-    this.editorInstance.render();
+    // Nettoyer d'abord les anciens marqueurs
+    monaco.editor.setModelMarkers(model, 'custom-lang', []);
     
-    // Alternative: changer le thème puis le remettre (trick pour forcer un refresh)
+    // Attendre un tick pour s'assurer que le nettoyage est appliqué
     setTimeout(() => {
-      const currentTheme = this.editorInstance.getOption(monaco.editor.EditorOption.theme);
-      if (currentTheme === 'lng-theme') {
-        monaco.editor.setTheme('vs-dark');
-        setTimeout(() => {
-          monaco.editor.setTheme('lng-theme');
-        }, 10);
+      if (errors && errors.length > 0) {
+        const markers = errors.map(err => {
+          const lineContent = model.getLineContent(err.line);
+          return {
+            severity: monaco.MarkerSeverity.Error,
+            message: err.message,
+            startLineNumber: err.line,
+            startColumn: 1,
+            endLineNumber: err.line,
+            endColumn: lineContent.length + 1
+          };
+        });
+        
+        console.log('Application des marqueurs:', markers);
+        monaco.editor.setModelMarkers(model, 'custom-lang', markers);
       }
-    }, 50);
-  }, 10);
-}
+      
+      // FORCER UNE MISE À JOUR DU RENDU
+      this.editorInstance.render();
+      
+      // Alternative: changer le thème puis le remettre (trick pour forcer un refresh)
+      setTimeout(() => {
+        const currentTheme = this.editorInstance.getOption(monaco.editor.EditorOption.theme);
+        if (currentTheme === 'lng-theme') {
+          monaco.editor.setTheme('vs-dark');
+          setTimeout(() => {
+            monaco.editor.setTheme('lng-theme');
+          }, 10);
+        }
+      }, 50);
+    }, 10);
+  }
 }

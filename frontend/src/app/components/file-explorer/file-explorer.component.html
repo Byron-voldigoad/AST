@@ -1,0 +1,38 @@
+<div class="h-full w-full bg-[#151515] flex flex-col border-r border-gray-800">
+  <div class="h-9 border-b border-gray-800 flex items-center px-4">
+    <div class="text-xs font-medium tracking-wider text-gray-500">EXPLORER</div>
+    <div class="ml-auto flex items-center gap-1">
+      <button class="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-800" 
+              (click)="createNewFile()" title="New File">
+        <i class="codicon codicon-new-file text-sm"></i>
+      </button>
+      <button class="w-6 h-6 flex items-center justify-center rounded hover:bg-gray-800" 
+              (click)="createNewFolder()" title="New Folder">
+        <i class="codicon codicon-new-folder text-sm"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="flex-1 overflow-y-auto p-2">
+    <ng-container *ngIf="fileTree$ | async as files">
+      <div *ngFor="let node of files">
+        <app-file-node 
+          [node]="node" 
+          [expanded]="isExpanded(node.path)"
+          (toggle)="toggleFolder(node.path)"
+          (open)="openFile(node)">
+        </app-file-node>
+      </div>
+    </ng-container>
+
+    <div *ngIf="!(fileTree$ | async)?.length" 
+         class="mt-8 px-3 py-6 text-center border border-dashed border-gray-700 rounded">
+      <div class="text-gray-500 text-xs mb-2">No file open</div>
+      <div class="text-gray-600 text-[10px]">Select a file from the explorer to start editing</div>
+    </div>
+  </div>
+
+  <div class="h-8 border-t border-gray-800 flex items-center px-3 text-xs text-gray-500">
+    <span>Code Editor</span>
+  </div>
+</div>

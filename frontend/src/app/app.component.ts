@@ -1,106 +1,120 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { EditorComponent } from './components/editor/editor.component';
 import { ConsoleComponent } from './components/console/console.component';
+import { SyntaxReferenceComponent } from './components/syntax-reference/syntax-reference.component';
+import { FileExplorerComponent } from './components/file-explorer/file-explorer.component';
+import { FileTabsComponent } from './components/file-tabs/file-tabs.component';
 import { ApiService } from './services/api.service';
+import { FileSystemService, FileNode } from './services/file-system.service';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, EditorComponent, ConsoleComponent],
+  imports: [
+    CommonModule, 
+    EditorComponent, 
+    ConsoleComponent,
+    SyntaxReferenceComponent,
+    FileExplorerComponent,
+    FileTabsComponent
+  ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent {
-  code: string = '';
+export class AppComponent implements OnInit {
+  @ViewChild(EditorComponent) editor!: EditorComponent;
+  
   consoleLogs: { message: string, type: 'info' | 'error' | 'success' }[] = [];
-
   isAnalyzing: boolean = false;
   isRunning: boolean = false;
-
+  
+  activeFile: FileNode | null = null;
+  showExplorer: boolean = true;
+  showDocumentation: boolean = true;
+  
   private codeChangeSubject = new Subject<string>();
 
-  // CORRECTION : Ajouter cette ligne pour référencer l'éditeur
-  @ViewChild(EditorComponent) editor!: EditorComponent;
+  constructor(
+    private apiService: ApiService,
+    public fileSystem: FileSystemService // CHANGÉ EN public
+  ) {}
 
-  constructor(private apiService: ApiService) {
-     console.log('Constructeur appelé');
-    // Debounce analysis to avoid spamming the backend
+  ngOnInit() {
+    // Analyse automatique
     this.codeChangeSubject.pipe(
       debounceTime(500),
-      distinctUntilChanged()
+      distinctUntilChanged(),
     ).subscribe(code => {
-      console.log('ANALYSE AUTOMATIQUE DÉCLENCHÉE ! Code:', code.substring(0, 30) + '...');
-      this.code = code;
-      this.analyze(true); // Silent analysis
+      this.analyze(true);
+    });
+
+    // Écouter les changements de fichier actif
+    this.fileSystem.activeFile$.subscribe(file => {
+      this.activeFile = file;
     });
   }
 
   onCodeChange(newCode: string) {
-    console.log('onCodeChange appelé avec code longueur:', newCode.length);
     this.codeChangeSubject.next(newCode);
+    
+    // Mettre à jour le contenu du fichier actif
+    if (this.activeFile) {
+      this.fileSystem.updateFileContent(this.activeFile.path, newCode);
+    }
   }
 
   analyze(silent: boolean = false) {
-    if (!this.code.trim()) return;
+    if (!this.activeFile?.content?.trim()) return;
 
     this.isAnalyzing = true;
-    if (!silent) this.consoleLogs = []; // Clear logs on manual trigger
+    if (!silent) this.consoleLogs = [];
 
-    console.log(`ANALYSE ${silent ? '(silencieuse)' : '(manuelle)'} déclenchée`);
-
-    this.apiService.parse(this.code).subscribe({
+    this.apiService.parse(this.activeFile.content).subscribe({
       next: (response) => {
-        console.log('RÉPONSE API parse:', response);
         this.isAnalyzing = false;
         
-        // CORRECTION : Vérifier que l'éditeur existe
         if (response.errors && response.errors.length > 0) {
-        console.log(`Erreurs trouvées: ${response.errors.length}`);
-        this.editor.setErrors(response.errors);
-        if (!silent) {
-          response.errors.forEach((err: any) =>
-            this.log(`Erreur ligne ${err.line}: ${err.message}`, 'error')
-          );
-        }
-        } else if (this.editor) {
-          console.log('Aucune erreur ou statut success');
-          this.editor.setErrors([]); // Clear errors
+          this.editor.setErrors(response.errors);
+          if (!silent) {
+            response.errors.forEach((err: any) =>
+              this.log(`Erreur ligne ${err.line}: ${err.message}`, 'error')
+            );
+          }
+        } else {
+          this.editor.setErrors([]);
           if (!silent) this.log('Analyse syntaxique réussie !', 'success');
         }
       },
       error: (err) => {
         this.isAnalyzing = false;
         if (!silent) this.log('Erreur serveur lors de l\'analyse.', 'error');
-        console.error(err);
       }
     });
   }
 
   run() {
-    if (!this.code.trim()) return;
+    if (!this.activeFile?.content?.trim()) return;
 
     this.isRunning = true;
-    this.consoleLogs = []; // Clear for new run
+    this.consoleLogs = [];
     this.log('Exécution en cours...', 'info');
 
-    this.apiService.run(this.code).subscribe({
+    this.apiService.run(this.activeFile.content).subscribe({
       next: (response) => {
         this.isRunning = false;
 
-        // Affichage des erreurs de compilation s'il y en a
-         if (response.errors && response.errors.length > 0) {
-        this.editor.setErrors(response.errors);
-        response.errors.forEach((err: any) =>
-          this.log(`Erreur ligne ${err.line}: ${err.message}`, 'error')
-        );
-        this.log('Échec de la compilation.', 'error');
-        return;
-      }
+        if (response.errors && response.errors.length > 0) {
+          this.editor.setErrors(response.errors);
+          response.errors.forEach((err: any) =>
+            this.log(`Erreur ligne ${err.line}: ${err.message}`, 'error')
+          );
+          this.log('Échec de la compilation.', 'error');
+          return;
+        }
 
-        // Affichage de la sortie standard
         if (response.output && response.output.length > 0) {
           response.output.forEach((line: string) => this.log(line, 'info'));
         }
@@ -110,12 +124,32 @@ export class AppComponent {
       error: (err) => {
         this.isRunning = false;
         this.log('Erreur serveur lors de l\'exécution.', 'error');
-        console.error(err);
       }
     });
   }
 
+  toggleExplorer() {
+    this.showExplorer = !this.showExplorer;
+  }
+
+  toggleDocumentation() {
+    this.showDocumentation = !this.showDocumentation;
+  }
+
+  // Méthodes pour créer fichiers/dossiers
+  createNewFile() {
+    this.fileSystem.createFile('new.lng', '/', 'file');
+  }
+
+  createNewFolder() {
+    this.fileSystem.createFile('new-folder', '/', 'folder');
+  }
+
   private log(message: string, type: 'info' | 'error' | 'success') {
     this.consoleLogs.push({ message, type });
+  }
+
+  ngOnDestroy() {
+    this.codeChangeSubject.complete();
   }
 }

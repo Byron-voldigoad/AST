@@ -1,0 +1,25 @@
+<div class="mb-1">
+  <div class="flex items-center gap-1.5 px-2 py-1 rounded cursor-pointer hover:bg-gray-800/50"
+       (click)="onClick()">
+    <!-- Correction du chevron pour les dossiers seulement -->
+    <ng-container *ngIf="node.type === 'folder'">
+      <i class="codicon codicon-chevron-{{expanded ? 'down' : 'right'}} text-xs text-gray-500"></i>
+    </ng-container>
+    
+    <i *ngIf="node.type === 'file'" class="w-3"></i>
+    
+    <i [class]="getIcon() + ' ' + getIconColor()" class="text-sm"></i>
+    
+    <span class="text-sm">{{ node.name }}</span>
+  </div>
+
+  <!-- Afficher les enfants seulement si c'est un dossier ET expanded -->
+  <div *ngIf="node.type === 'folder' && expanded && node.children" class="ml-6 mt-1 space-y-0.5">
+    <app-file-node *ngFor="let child of node.children" 
+                   [node]="child"
+                   [expanded]="expanded" 
+                   (toggle)="toggle.emit($event)"
+                   (open)="open.emit($event)">
+    </app-file-node>
+  </div>
+</div>
