@@ -67,19 +67,29 @@ export class AppComponent implements OnInit {
   }
 
   analyze(silent: boolean = false) {
+    // Synchroniser le code depuis l'éditeur Monaco
+    if (this.editor && this.editor.editorInstance) {
+      const currentCode = this.editor.editorInstance.getValue();
+      if (this.activeFile) {
+        this.activeFile.content = currentCode;
+      }
+    }
     if (!this.activeFile?.content?.trim()) return;
 
     this.isAnalyzing = true;
     if (!silent) this.consoleLogs = [];
 
+    console.log('Code envoyé au backend:', this.activeFile.content);
     this.apiService.parse(this.activeFile.content).subscribe({
       next: (response) => {
+        console.log('Réponse parse:', response);
         this.isAnalyzing = false;
         
-        if (response.errors && response.errors.length > 0) {
-          this.editor.setErrors(response.errors);
+        const errors = Array.isArray(response.errors) ? response.errors : [];
+        if (errors.length > 0) {
+          this.editor.setErrors(errors);
           if (!silent) {
-            response.errors.forEach((err: any) =>
+            errors.forEach((err: any) =>
               this.log(`Erreur ligne ${err.line}: ${err.message}`, 'error')
             );
           }
@@ -96,12 +106,20 @@ export class AppComponent implements OnInit {
   }
 
   run() {
+    // Synchroniser le code depuis l'éditeur Monaco
+    if (this.editor && this.editor.editorInstance) {
+      const currentCode = this.editor.editorInstance.getValue();
+      if (this.activeFile) {
+        this.activeFile.content = currentCode;
+      }
+    }
     if (!this.activeFile?.content?.trim()) return;
 
     this.isRunning = true;
     this.consoleLogs = [];
     this.log('Exécution en cours...', 'info');
 
+    console.log('Code envoyé à l\'exécution:', this.activeFile.content);
     this.apiService.run(this.activeFile.content).subscribe({
       next: (response) => {
         this.isRunning = false;

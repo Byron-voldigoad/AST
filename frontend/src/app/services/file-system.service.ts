@@ -77,8 +77,8 @@ function add(a: int, b: int): int {
 }
 
 if (x < y) {
-    print("x est plus petit que y");
-    print(add(x, y));
+    pf("x est plus petit que y");
+    pf(add(x, y));
 }`
       },
       {
