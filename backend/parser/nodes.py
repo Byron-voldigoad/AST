@@ -14,6 +14,12 @@ class ASTNode:
                 result[k] = v.to_dict()
             elif isinstance(v, list):
                 result[k] = [item.to_dict() if isinstance(item, ASTNode) else item for item in v]
+            elif isinstance(v, dict):
+                # Gère les dictionnaires dans l'AST (ex: ObjectLiteral)
+                processed_dict = {}
+                for key, val in v.items():
+                    processed_dict[key] = val.to_dict() if isinstance(val, ASTNode) else val
+                result[k] = processed_dict
             else:
                 result[k] = v
         return result
@@ -57,20 +63,35 @@ class FunctionCall(Expression):
 
 @dataclass
 class ArrayLiteral(Expression):
-    """ Tableau: [1, 2, 3] (Pas encore implémenté) """
+    """ Tableau: [1, 2, 3] """
     elements: List[Expression]
 
 @dataclass
 class ObjectLiteral(Expression):
-    """ Objet: { x: 1, y: 2 } (Pas encore implémenté) """
-    properties: Dict[str, Expression]
+    """ Objet/Struct: { x: 1, y: 2 } """
+    # Les clés d'un objet/struct sont des identifiants (strings)
+    properties: Dict[str, Expression] 
 
 @dataclass
 class Assignment(Expression):
-    """ Assignation: x = 10 """
-    target: Expression  # Identifier
-    operator: str
+    """ Assignation: x = 10 ou x += 5 """
+    target: Expression  # Peut être Identifier, MemberAccess ou IndexAccess
+    operator: str       # =, +=, -=, etc.
     value: Expression
+
+# --- NOUVEAUX NŒUDS d'Accès de Membres (Point 19 & 20) ---
+
+@dataclass
+class MemberAccess(Expression):
+    """ Accès aux membres: obj.member """
+    target: Expression # L'objet ou la classe sur lequel on accède (ex: obj)
+    member: Identifier # Le nom du membre accédé (ex: x)
+
+@dataclass
+class IndexAccess(Expression):
+    """ Accès par indice: arr[index] """
+    target: Expression # Le tableau ou la collection
+    index: Expression  # L'expression qui donne l'indice
 
 # --- Statements (Instructions qui effectuent une action) ---
 
@@ -84,9 +105,10 @@ class Block(Statement):
     """ Un bloc de code: { ... } """
     statements: List[Statement]
 
+# VariableDecl gère VAR et CONST (Point 4)
 @dataclass
 class VariableDecl(Statement):
-    """ Déclaration de variable: var x: int = 10; """
+    """ Déclaration de variable: var x: int = 10; OU const PI = 3.14; """
     name: str
     var_type: Optional[str]
     initializer: Optional[Expression]
@@ -99,6 +121,25 @@ class FunctionDecl(Statement):
     params: List[Dict[str, str]]  # Liste de {name: str, type: str}
     return_type: Optional[str]
     body: Block
+
+# --- NOUVEAUX NŒUDS de Classes (Point 7) ---
+
+@dataclass
+class ConstructorDecl(ASTNode):
+    """ Déclaration de constructeur: constructor(params) { ... } """
+    params: List[Dict[str, str]]
+    body: Block
+
+@dataclass
+class ClassDecl(Statement):
+    """ Déclaration de classe: class Point extends Shape { ... } """
+    name: str
+    # Le nom de la classe parente (Identifier)
+    super_class: Optional[Identifier] 
+    # Le corps peut contenir VariableDecl, FunctionDecl, ConstructorDecl
+    members: List[ASTNode] 
+
+# --- Contrôle de Flux de Base (Déjà existant) ---
 
 @dataclass
 class IfStatement(Statement):
@@ -121,6 +162,7 @@ class ForStatement(Statement):
     update: Optional[Expression]
     body: Statement
 
+# Contrôle de flux d'itération (Point 11)
 @dataclass
 class ReturnStatement(Statement):
     """ Retour de fonction: return result; """

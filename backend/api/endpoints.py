@@ -6,6 +6,10 @@ from parser.parser import Parser
 from interpreter.interpreter import Interpreter
 from parser.semantic_analyzer import SemanticAnalyzer
 import traceback
+import logging
+
+logger = logging.getLogger("analyseur_api")
+logging.basicConfig(level=logging.INFO)
 
 router = APIRouter()
 
@@ -40,6 +44,7 @@ class RunResponse(BaseModel):
 async def lex_code(request: CodeRequest):
     """ Endpoint pour l'analyse lexicale (transformer code -> tokens) """
     try:
+        logger.info(f"/lex called (len={len(request.code)})")
         lexer = Lexer(request.code)
         tokens = lexer.tokenize()
         return [
@@ -52,12 +57,14 @@ async def lex_code(request: CodeRequest):
             for t in tokens
         ]
     except Exception as e:
+        logger.exception("Erreur dans /lex")
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/parse", response_model=ASTResponse)
 async def parse_code(request: CodeRequest):
     """ Endpoint pour l'analyse syntaxique (tokens -> AST) """
     try:
+        logger.info(f"/parse called (len={len(request.code)})")
         lexer = Lexer(request.code)
         tokens = lexer.tokenize()
         parser = Parser(tokens)
@@ -74,6 +81,7 @@ async def parse_code(request: CodeRequest):
         
         return ASTResponse(ast=program.to_dict() if not errors else None, errors=errors if errors else None)
     except Exception as e:
+        logger.exception("Erreur dans /parse")
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/ast", response_model=ASTResponse)
@@ -85,6 +93,7 @@ async def get_ast(request: CodeRequest):
 async def run_code(request: CodeRequest):
     """ Endpoint pour exécuter le code """
     try:
+        logger.info(f"/run called (len={len(request.code)})")
         lexer = Lexer(request.code)
         tokens = lexer.tokenize()
         parser = Parser(tokens)
@@ -100,6 +109,7 @@ async def run_code(request: CodeRequest):
                 errors.append(ErrorResponse(**err))
 
         if errors:
+            logger.info(f"/run aborté: erreurs statiques ({len(errors)})")
             return RunResponse(output=[], error="Erreur d'analyse statique", errors=errors)
         
         interpreter = Interpreter()
@@ -112,4 +122,5 @@ async def run_code(request: CodeRequest):
             
         return RunResponse(output=output, error=error)
     except Exception as e:
+        logger.exception("Erreur système dans /run")
         return RunResponse(output=[], error=f"Erreur système: {str(e)}")
